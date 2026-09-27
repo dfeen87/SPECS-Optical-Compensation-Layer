@@ -1,6 +1,7 @@
 #include "optical_compensation.hpp"
 
 #include <algorithm>
+#include <charconv>
 #include <cmath>
 #include <fstream>
 #include <iterator>
@@ -25,6 +26,35 @@ double numberField(const std::string& json, const std::string& name, bool option
     return value;
 }
 
+float floatField(const std::string& json, const std::string& name) {
+    const double value = numberField(json, name);
+    if (value < -std::numeric_limits<float>::max() ||
+        value > std::numeric_limits<float>::max())
+        throw std::runtime_error("JSON field is outside the float range: " + name);
+    return static_cast<float>(value);
+}
+
+std::uint64_t timestampField(const std::string& json) {
+    const std::regex pattern("\\\"timestamp\\\"\\s*:\\s*([^,}\\s]+)");
+    std::smatch match;
+    if (!std::regex_search(json, match, pattern)) {
+        // Distinguish an absent optional timestamp from one with an invalid value.
+        if (json.find("\"timestamp\"") == std::string::npos) return 0;
+        throw std::runtime_error("invalid JSON field: timestamp");
+    }
+    const std::string text = match[1].str();
+    if (!text.empty() && (text.front() == '-' || text.front() == '+')) {
+        if (text.front() == '-') throw std::runtime_error("timestamp is outside the uint64 range");
+    }
+    std::uint64_t value{};
+    const char* begin = text.data() + (!text.empty() && text.front() == '+');
+    const char* end = text.data() + text.size();
+    const auto parsed = std::from_chars(begin, end, value);
+    if (parsed.ec != std::errc{} || parsed.ptr != end)
+        throw std::runtime_error("timestamp is outside the uint64 range");
+    return value;
+}
+
 std::vector<float> matrixField(const std::string& json) {
     const std::regex field("\\\"projection_matrix\\\"\\s*:\\s*\\[([^\\]]*)\\]");
     std::smatch match;
@@ -34,7 +64,11 @@ std::vector<float> matrixField(const std::string& json) {
     std::vector<float> values;
     for (auto it = std::sregex_iterator(match[1].first, match[1].second, number);
          it != std::sregex_iterator(); ++it) {
-        values.push_back(std::stof(it->str()));
+        const double value = std::stod(it->str());
+        if (!std::isfinite(value) || value < -std::numeric_limits<float>::max() ||
+            value > std::numeric_limits<float>::max())
+            throw std::runtime_error("projection_matrix value is outside the float range");
+        values.push_back(static_cast<float>(value));
     }
     if (values.size() != 16) throw std::runtime_error("projection_matrix must contain 16 numbers");
     return values;
@@ -47,17 +81,14 @@ CalibrationParams loadParamsFromJson(const std::string& path) {
     if (!input) throw std::runtime_error("cannot open calibration file: " + path);
     const std::string json((std::istreambuf_iterator<char>(input)), {});
     CalibrationParams params;
-    params.k1 = static_cast<float>(numberField(json, "k1"));
-    params.k2 = static_cast<float>(numberField(json, "k2"));
-    params.k3 = static_cast<float>(numberField(json, "k3"));
-    params.p1 = static_cast<float>(numberField(json, "p1"));
-    params.p2 = static_cast<float>(numberField(json, "p2"));
+    params.k1 = floatField(json, "k1");
+    params.k2 = floatField(json, "k2");
+    params.k3 = floatField(json, "k3");
+    params.p1 = floatField(json, "p1");
+    params.p2 = floatField(json, "p2");
     const auto matrix = matrixField(json);
     std::copy(matrix.begin(), matrix.end(), params.projectionMatrix.begin());
-    const double timestamp = numberField(json, "timestamp", true);
-    if (timestamp < 0 || timestamp > static_cast<double>(std::numeric_limits<std::uint64_t>::max()))
-        throw std::runtime_error("timestamp is outside the uint64 range");
-    params.timestamp = static_cast<std::uint64_t>(timestamp);
+    params.timestamp = timestampField(json);
     return params;
 }
 

@@ -7,6 +7,19 @@
 #include <stdexcept>
 #include <string>
 
+namespace {
+
+void expectInvalidCalibration(const std::string& path, const std::string& contents) {
+    std::ofstream(path) << contents;
+    try {
+        (void)specs::loadParamsFromJson(path);
+        assert(false && "invalid calibration was accepted");
+    } catch (const std::runtime_error&) {
+    }
+}
+
+}  // namespace
+
 class FakeGraphics final : public specs::GraphicsApi {
 public:
     unsigned compileShader(unsigned, const std::string& source) override {
@@ -45,5 +58,14 @@ int main() {
     assert(graphics.deleted == 2 && graphics.used == 9 && graphics.transpose);
     assert(graphics.scalars["p2"] == .5f && graphics.eyeX == .25f && graphics.eyeY == -.5f);
     assert(graphics.bound == 42 && graphics.drawn == 6 && presented == 1 && synchronized == 1);
+    expectInvalidCalibration(path, R"({"k1":1e100,"k2":0,"k3":0,"p1":0,"p2":0,
+      "projection_matrix":[1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1]})");
+    expectInvalidCalibration(path, R"({"k1":0,"k2":0,"k3":0,"p1":0,"p2":0,
+      "projection_matrix":[1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1],"timestamp":-1})");
+    expectInvalidCalibration(path, R"({"k1":0,"k2":0,"k3":0,"p1":0,"p2":0,
+      "projection_matrix":[1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1],"timestamp":1.5})");
+    expectInvalidCalibration(path, R"({"k1":0,"k2":0,"k3":0,"p1":0,"p2":0,
+      "projection_matrix":[1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1],
+      "timestamp":18446744073709551616})");
     std::remove(path.c_str());
 }

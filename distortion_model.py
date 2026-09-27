@@ -46,7 +46,17 @@ def compute_calibration(calibration: Mapping[str, Any]) -> dict[str, Any]:
     }
     # C order is explicit; the C++ bridge uploads with transpose=true.
     result["projection_matrix"] = [value for row in projection for value in row]
-    result["timestamp"] = int(calibration.get("timestamp", 0))
+    timestamp = calibration.get("timestamp", 0)
+    try:
+        integer_timestamp = int(timestamp)
+        numeric_timestamp = float(timestamp)
+    except (TypeError, ValueError, OverflowError) as error:
+        raise ValueError("timestamp must be a non-negative integer") from error
+    if (isinstance(timestamp, bool) or not math.isfinite(numeric_timestamp) or
+            numeric_timestamp < 0 or not numeric_timestamp.is_integer() or
+            integer_timestamp > 2**64 - 1):
+        raise ValueError("timestamp must be a non-negative uint64 integer")
+    result["timestamp"] = integer_timestamp
     return result
 
 

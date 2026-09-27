@@ -33,6 +33,14 @@ class CalibrationTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "missing"):
             compute_calibration({})
 
+    def test_timestamp_validation(self):
+        for invalid in (-1, 1.5, float("inf"), 2**64):
+            with self.subTest(timestamp=invalid):
+                with self.assertRaisesRegex(ValueError, "timestamp"):
+                    compute_calibration({**self.base, "timestamp": invalid})
+        self.assertEqual(compute_calibration({**self.base, "timestamp": 2**64 - 1})["timestamp"],
+                         2**64 - 1)
+
 
 if __name__ == "__main__":
     unittest.main()
