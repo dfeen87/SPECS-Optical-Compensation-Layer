@@ -7,6 +7,11 @@
 
 namespace specs {
 
+inline constexpr unsigned versionMajor = 1;
+inline constexpr unsigned versionMinor = 0;
+inline constexpr unsigned versionPatch = 0;
+inline constexpr const char* versionString = "1.0.0";
+
 using GlId = unsigned int;
 
 struct CalibrationParams {

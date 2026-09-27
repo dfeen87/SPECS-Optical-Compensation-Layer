@@ -4,7 +4,9 @@ from __future__ import annotations
 
 import json
 import math
+import os
 from pathlib import Path
+import tempfile
 from typing import Any, Mapping
 
 REQUIRED_FIELDS = ("k1", "k2", "k3", "p1", "p2", "fx", "fy", "cx", "cy")
@@ -66,10 +68,22 @@ def export_calibration(params: Mapping[str, Any], path: str | Path) -> None:
     """Atomically export calibration parameters as JSON."""
     destination = Path(path)
     destination.parent.mkdir(parents=True, exist_ok=True)
-    # replace() prevents readers from observing a partially written calibration.
-    temporary = destination.with_suffix(destination.suffix + ".tmp")
-    temporary.write_text(json.dumps(dict(params), indent=2) + "\n", encoding="utf-8")
-    temporary.replace(destination)
+    # A unique file in the destination directory makes concurrent exports safe;
+    # replace() then prevents readers from observing a partially written file.
+    temporary_name: str | None = None
+    try:
+        with tempfile.NamedTemporaryFile(
+                mode="w", encoding="utf-8", dir=destination.parent,
+                prefix=f".{destination.name}.", suffix=".tmp", delete=False) as temporary:
+            temporary_name = temporary.name
+            json.dump(dict(params), temporary, indent=2)
+            temporary.write("\n")
+            temporary.flush()
+            os.fsync(temporary.fileno())
+        Path(temporary_name).replace(destination)
+    finally:
+        if temporary_name is not None:
+            Path(temporary_name).unlink(missing_ok=True)
 
 
 def update_from_sensor(base: Mapping[str, Any], sensor: Mapping[str, Any]) -> dict[str, Any]:

@@ -38,6 +38,9 @@ public:
 };
 
 int main() {
+    static_assert(specs::versionMajor == 1 && specs::versionMinor == 0 &&
+                  specs::versionPatch == 0);
+    assert(std::string(specs::versionString) == "1.0.0");
     const std::string path = "test-calibration.json";
     std::ofstream(path) << R"({"k1":0.1,"k2":0.2,"k3":0.3,"p1":0.4,"p2":0.5,
       "projection_matrix":[1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1],"timestamp":12})";
