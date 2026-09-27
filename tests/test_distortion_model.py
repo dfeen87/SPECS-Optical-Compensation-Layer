@@ -30,6 +30,7 @@ class CalibrationTests(unittest.TestCase):
             path = Path(directory) / "nested" / "calibration.json"
             export_calibration(compute_calibration(self.base), path)
             self.assertEqual(json.loads(path.read_text())["p2"], .003)
+            self.assertEqual(list(path.parent.iterdir()), [path])
         with self.assertRaisesRegex(ValueError, "missing"):
             compute_calibration({})
 

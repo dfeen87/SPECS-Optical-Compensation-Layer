@@ -4,6 +4,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![C++17](https://img.shields.io/badge/C%2B%2B-17-00599C.svg)](CMakeLists.txt)
 [![Python 3](https://img.shields.io/badge/Python-3-3776AB.svg)](distortion_model.py)
+[![Version](https://img.shields.io/badge/version-1.0.0-blue.svg)](CHANGELOG.md)
 
 ## About
 
@@ -76,6 +77,17 @@ ctest --test-dir build --output-on-failure
 
 This creates the `optical_compensation` library and, when testing is enabled,
 the `optical_compensation_test` executable.
+
+To install the C++ library and consume its exported CMake package:
+
+```bash
+cmake --install build --prefix /your/install/prefix
+```
+
+Downstream CMake projects can then use
+`find_package(SPECSOpticalCompensation 1 CONFIG REQUIRED)` and link the
+`SPECS::optical_compensation` target. The public header also exposes
+`specs::versionString` for runtime diagnostics.
 
 ### 2. Run the Python tests
 
@@ -193,11 +205,12 @@ matrix values in column-major order by default.
 - Calibration quality, physical lens characterization, and hardware safety remain
   the integrator's responsibility.
 
-## Contributing
+## Project policies
 
-Contributions are welcome. Keep changes focused and dependency-light, add or
-update tests for behavioral changes, and run both the native and Python test
-suites before opening a pull request.
+Contributions are welcome; see [CONTRIBUTING.md](CONTRIBUTING.md) for the local
+workflow. Participation is governed by the [Code of Conduct](CODE_OF_CONDUCT.md),
+and vulnerabilities should follow the private process in [SECURITY.md](SECURITY.md).
+Release history is maintained in [CHANGELOG.md](CHANGELOG.md).
 
 ## License
 
