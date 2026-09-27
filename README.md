@@ -1,5 +1,7 @@
 # Specs Optical Compensation Layer
 
+[![CI](https://github.com/dfeen87/SPECS-Optical-Compensation-Layer/actions/workflows/ci.yml/badge.svg)](https://github.com/dfeen87/SPECS-Optical-Compensation-Layer/actions/workflows/ci.yml)
+
 Version 1 is a small, testable reference implementation of an optical correction
 pipeline. Python validates device/user calibration and exports a JSON interchange
 file; C++ loads that file, binds its values, and runs the sensor-driven render loop.
