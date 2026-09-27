@@ -1,0 +1,27 @@
+cff-version: 1.2.0
+title: "SPECS Optical Compensation Layer"
+version: "1.0.0"
+date-released: "2026-09-27"
+authors:
+  - family-names: "Feeney"
+    given-names: "Don Michael"
+    affiliation: "Bright Acts: People's Coin"
+    orcid: "https://orcid.org/0009-0003-1350-4160"
+
+abstract: >
+  A minimal, cross-language optical compensation pipeline providing Python
+  calibration, GLSL distortion-correction shaders, and a C++ runtime bridge.
+  Converts device/user calibration into projection matrices and shader
+  parameters, supports sensor-driven updates, and includes full tests and
+  canonical PAPER.md synchronization.
+
+keywords:
+  - optical compensation
+  - calibration engine
+  - GLSL shaders
+  - C++ runtime bridge
+  - distortion correction
+  - SPECS pipeline
+
+repository-code: "https://github.com/dfeen87/SPECS-Optical-Compensation-Layer"
+license: "MIT"
