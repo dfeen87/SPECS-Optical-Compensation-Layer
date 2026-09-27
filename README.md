@@ -179,6 +179,7 @@ matrix values in column-major order by default.
 ├── CMakeLists.txt                 # C++17 library and test configuration
 ├── distortion_model.py            # Calibration, export, and sensor updates
 ├── LICENSE                        # MIT license
+├── CITATION.cff                   # For Citation to Repository
 ├── PAPER.md                       # Architecture and mathematical background
 └── README.md                      # Project overview and usage guide
 ```
