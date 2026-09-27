@@ -37,6 +37,8 @@ def compute_calibration(calibration: Mapping[str, Any]) -> dict[str, Any]:
     if not all(math.isfinite(value) for row in rotation + translation for value in row):
         raise ValueError("R and t must contain finite values")
 
+    # Form K[R|t] explicitly instead of depending on NumPy. Keeping this module
+    # dependency-free makes calibration generation usable in constrained tooling.
     extrinsic = [rotation[row] + translation[row] for row in range(3)]
     projected = [[sum(intrinsic[row][k] * extrinsic[k][column] for k in range(3))
                   for column in range(4)] for row in range(3)]
@@ -64,6 +66,7 @@ def export_calibration(params: Mapping[str, Any], path: str | Path) -> None:
     """Atomically export calibration parameters as JSON."""
     destination = Path(path)
     destination.parent.mkdir(parents=True, exist_ok=True)
+    # replace() prevents readers from observing a partially written calibration.
     temporary = destination.with_suffix(destination.suffix + ".tmp")
     temporary.write_text(json.dumps(dict(params), indent=2) + "\n", encoding="utf-8")
     temporary.replace(destination)

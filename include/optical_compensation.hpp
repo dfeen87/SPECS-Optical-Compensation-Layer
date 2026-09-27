@@ -10,7 +10,9 @@ namespace specs {
 using GlId = unsigned int;
 
 struct CalibrationParams {
+    // Brown-Conrady radial (k) and tangential (p) distortion coefficients.
     float k1{}, k2{}, k3{}, p1{}, p2{};
+    // Row-major at the interchange boundary; bindUniforms transposes it for OpenGL.
     std::array<float, 16> projectionMatrix{};
     float eyeOffsetX{}, eyeOffsetY{};
     std::uint64_t timestamp{};
@@ -39,6 +41,8 @@ public:
 };
 
 struct PipelineCallbacks {
+    // These hooks isolate the deterministic correction loop from a particular
+    // device SDK, window system, and frame-present implementation.
     std::function<bool()> deviceIsRunning;
     std::function<SensorData()> pollDeviceSensors;
     std::function<FrameData()> captureFrame;
@@ -48,11 +52,15 @@ struct PipelineCallbacks {
 };
 
 CalibrationParams loadParamsFromJson(const std::string& path);
+// Shader objects are deleted after linking (and on failure); ownership of the
+// returned program remains with the GraphicsApi implementation/caller.
 GlId createCorrectiveShaderProgram(GraphicsApi& graphics,
                                    const std::string& vertexSource,
                                    const std::string& fragmentSource);
 void bindUniforms(GraphicsApi& graphics, GlId program, const CalibrationParams& params);
 void updateDynamicUniforms(GraphicsApi& graphics, GlId program, const SensorData& sensor);
+// Runs until deviceIsRunning returns false. Static calibration is rebound only
+// when the sensor reports a change, while eye offsets are uploaded every frame.
 void runCorrectivePipeline(GraphicsApi& graphics, GlId program, CalibrationParams params,
                            const PipelineCallbacks& callbacks, int vertexCount = 6);
 
