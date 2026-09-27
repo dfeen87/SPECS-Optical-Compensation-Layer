@@ -18,9 +18,7 @@ or OpenGL loader. Instead, the C++ layer exposes narrow graphics and pipeline
 interfaces that an application can adapt to its own runtime.
 
 > [!NOTE]
-> This repository is a reference implementation, not a complete end-user
-> application. The host application remains responsible for creating an OpenGL
-> context, supplying frames and sensor readings, and presenting rendered output.
+> This repository is a reference implementation rather than a complete end-user application. The host application remains responsible for creating the OpenGL context, supplying frames and sensor data, and presenting rendered output. Beyond vision correction, the underlying software-defined calibration layer is designed to explore a broader possibility: dynamically correcting, enhancing, filtering, or spatially transforming the wearer’s visual environment in real time. 
 
 ## Highlights
 
