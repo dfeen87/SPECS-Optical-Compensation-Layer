@@ -1,0 +1,62 @@
+#pragma once
+
+#include <array>
+#include <cstdint>
+#include <functional>
+#include <string>
+
+namespace specs {
+
+using GlId = unsigned int;
+
+struct CalibrationParams {
+    float k1{}, k2{}, k3{}, p1{}, p2{};
+    std::array<float, 16> projectionMatrix{};
+    float eyeOffsetX{}, eyeOffsetY{};
+    std::uint64_t timestamp{};
+};
+
+struct SensorData {
+    float eyeOffsetX{}, eyeOffsetY{};
+    bool calibrationChanged{};
+};
+
+struct FrameData { GlId texture{}; };
+
+class GraphicsApi {
+public:
+    virtual ~GraphicsApi() = default;
+    virtual GlId compileShader(unsigned type, const std::string& source) = 0;
+    virtual GlId linkProgram(GlId vertex, GlId fragment) = 0;
+    virtual void deleteShader(GlId shader) = 0;
+    virtual void useProgram(GlId program) = 0;
+    virtual void uniform1f(GlId program, const char* name, float value) = 0;
+    virtual void uniform2f(GlId program, const char* name, float x, float y) = 0;
+    virtual void uniformMatrix4(GlId program, const char* name,
+                                const float* value, bool transpose) = 0;
+    virtual void bindTexture(GlId texture) = 0;
+    virtual void drawTriangles(int vertexCount) = 0;
+};
+
+struct PipelineCallbacks {
+    std::function<bool()> deviceIsRunning;
+    std::function<SensorData()> pollDeviceSensors;
+    std::function<FrameData()> captureFrame;
+    std::function<CalibrationParams(const SensorData&)> updateCalibration;
+    std::function<void()> presentFrame;
+    std::function<void()> synchronizeFrameTiming;
+};
+
+CalibrationParams loadParamsFromJson(const std::string& path);
+GlId createCorrectiveShaderProgram(GraphicsApi& graphics,
+                                   const std::string& vertexSource,
+                                   const std::string& fragmentSource);
+void bindUniforms(GraphicsApi& graphics, GlId program, const CalibrationParams& params);
+void updateDynamicUniforms(GraphicsApi& graphics, GlId program, const SensorData& sensor);
+void runCorrectivePipeline(GraphicsApi& graphics, GlId program, CalibrationParams params,
+                           const PipelineCallbacks& callbacks, int vertexCount = 6);
+
+extern const char* correctiveVertexShaderSource;
+extern const char* correctiveFragmentShaderSource;
+
+}  // namespace specs
