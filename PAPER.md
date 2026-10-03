@@ -1,6 +1,6 @@
 # SPECS Optical Compensation Layer
 
-- **Version:** 1.0.0
+- **Version:** 2.0.0
 - **Author:** Don M. Feeney Jr.
 - **ORCID:** [0009-0003-1350-4160](https://orcid.org/0009-0003-1350-4160)
 - **DOI:** [10.5281/zenodo.22102285](https://doi.org/10.5281/zenodo.22102285)
@@ -57,7 +57,9 @@ Python is not invoked in the frame loop.
 The required scalar inputs are the radial coefficients `k1`, `k2`, and `k3`,
 the tangential coefficients `p1` and `p2`, and camera intrinsics `fx`, `fy`,
 `cx`, and `cy`. All values must be finite, and both focal lengths must be
-positive.
+positive. Inputs and computed matrix elements must also fit the native
+single-precision representation. Booleans and numeric strings are rejected so
+the Python producer and JSON consumer share one unambiguous numeric contract.
 
 Rotation `R` defaults to the 3×3 identity matrix. Translation `t` defaults to a
 three-element zero column and may be supplied as a flat vector or a 3×1 matrix.
@@ -157,10 +159,13 @@ A generated calibration document has this form:
 ```
 
 The native reader is intentionally limited to the shape emitted by the Python
-module. It is not a general JSON API. Producers other than
+module. It validates the complete JSON structure, rejects duplicate required
+fields and trailing content, and does not treat nested or malformed data as a
+top-level calibration value. It is not a general JSON API. Producers other than
 `export_calibration` should preserve these field names and numeric constraints.
 
-Export uses a unique temporary file in the destination directory, flushes it,
+Export validates the entire shader-ready document before filesystem mutation,
+then uses a unique temporary file in the destination directory, flushes it,
 and atomically replaces the destination. Readers therefore do not observe a
 partially written document, including when multiple writers use the same path.
 
@@ -182,7 +187,7 @@ and regulatory requirements.
 ## 7. Reproducibility
 
 The C++ implementation requires CMake 3.16 or newer and a C++17 compiler. The
-calibration module requires Python 3 and uses only the standard library. Build
+calibration module requires Python 3.10 or newer and uses only the standard library. Build
 and execute both test suites with:
 
 ```bash
@@ -192,5 +197,5 @@ ctest --test-dir build --output-on-failure
 python -m unittest discover -s tests -p 'test_*.py'
 ```
 
-Version 1.0.0 is declared by the CMake project, public C++ version constants,
+Version 2.0.0 is declared by the CMake project, public C++ version constants,
 the citation metadata, and the changelog.

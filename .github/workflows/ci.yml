@@ -9,26 +9,34 @@ permissions:
 
 jobs:
   native:
-    name: C++ build and tests
+    name: C++ ${{ matrix.build-type }} build and tests
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        build-type: [Debug, Release]
     steps:
       - uses: actions/checkout@v4
       - name: Configure
-        run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+        run: cmake -S . -B build -DCMAKE_BUILD_TYPE=${{ matrix.build-type }}
       - name: Build
         run: cmake --build build --parallel
       - name: Test
         run: ctest --test-dir build --output-on-failure
 
   python:
-    name: Python tests
+    name: Python ${{ matrix.python-version }} tests
     runs-on: ubuntu-latest
     timeout-minutes: 5
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.10", "3.x"]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
-          python-version: "3.x"
+          python-version: ${{ matrix.python-version }}
       - name: Test
         run: python -m unittest discover -s tests -p 'test_*.py'
