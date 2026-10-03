@@ -4,7 +4,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![C++17](https://img.shields.io/badge/C%2B%2B-17-00599C.svg)](CMakeLists.txt)
 [![Python 3](https://img.shields.io/badge/Python-3-3776AB.svg)](distortion_model.py)
-[![Version](https://img.shields.io/badge/version-1.0.0-blue.svg)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-2.0.0-blue.svg)](CHANGELOG.md)
 
 ## About
 
@@ -58,7 +58,7 @@ For the detailed design, mathematics, parameter mapping, and glossary, see
 
 | Component | Requirement |
 | --- | --- |
-| Calibration tooling | Python 3 (standard library only) |
+| Calibration tooling | Python 3.10+ (standard library only) |
 | Native library | CMake 3.16+ and a C++17 compiler |
 | Shader runtime | An OpenGL environment supporting GLSL 3.30 core |
 | Application integration | Implementations of `specs::GraphicsApi` and `specs::PipelineCallbacks` |
@@ -83,7 +83,7 @@ cmake --install build --prefix /your/install/prefix
 ```
 
 Downstream CMake projects can then use
-`find_package(SPECSOpticalCompensation 1 CONFIG REQUIRED)` and link the
+`find_package(SPECSOpticalCompensation 2 CONFIG REQUIRED)` and link the
 `SPECS::optical_compensation` target. The public header also exposes
 `specs::versionString` for runtime diagnostics.
 
@@ -155,6 +155,12 @@ The Python input uses the following values:
 | `t` | Extrinsic translation | Optional three-value/3&times;1 finite vector |
 | `timestamp` | Calibration revision/time marker | Optional unsigned 64-bit integer |
 
+Numeric inputs must be actual Python `int`/`float` values (not booleans or
+numeric strings), finite, and representable by the C++ layer's IEEE-754
+single-precision fields. Projection arithmetic is checked again after matrix
+multiplication so overflow cannot cross the interchange boundary. Export
+validates the complete document before creating a temporary file.
+
 The exported `projection_matrix` contains 16 values in row-major order. The C++
 bridge deliberately requests a transpose during upload because OpenGL consumes
 matrix values in column-major order by default.
@@ -169,6 +175,8 @@ matrix values in column-major order by default.
   image should appear black.
 - Static calibration uniforms are rebound only when sensors report a calibration
   change; eye offsets are uploaded on every frame.
+- Malformed JSON, duplicate calibration fields, non-finite runtime calibration,
+  and non-finite sensor offsets fail closed before the affected frame is drawn.
 
 ## Repository structure
 
@@ -208,7 +216,7 @@ matrix values in column-major order by default.
 Contributions are welcome; see [CONTRIBUTING.md](CONTRIBUTING.md) for the local
 workflow. Participation is governed by the [Code of Conduct](CODE_OF_CONDUCT.md),
 and vulnerabilities should follow the private process in [SECURITY.md](SECURITY.md).
-Release history is maintained in [CHANGELOG.md](CHANGELOG.md).
+Release history is maintained in [CHANGELOG.md](CHANGELOG.md); the current engineering baseline is detailed in the [2.0.0 BEDROCK release notes](docs/RELEASE_2.0.0.md).
 
 ## License
 

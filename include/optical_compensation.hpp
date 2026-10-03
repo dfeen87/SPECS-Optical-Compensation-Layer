@@ -7,10 +7,10 @@
 
 namespace specs {
 
-inline constexpr unsigned versionMajor = 1;
+inline constexpr unsigned versionMajor = 2;
 inline constexpr unsigned versionMinor = 0;
 inline constexpr unsigned versionPatch = 0;
-inline constexpr const char* versionString = "1.0.0";
+inline constexpr const char* versionString = "2.0.0";
 
 using GlId = unsigned int;
 
@@ -62,6 +62,7 @@ CalibrationParams loadParamsFromJson(const std::string& path);
 GlId createCorrectiveShaderProgram(GraphicsApi& graphics,
                                    const std::string& vertexSource,
                                    const std::string& fragmentSource);
+// Uniform entry points reject non-finite values before invoking GraphicsApi.
 void bindUniforms(GraphicsApi& graphics, GlId program, const CalibrationParams& params);
 void updateDynamicUniforms(GraphicsApi& graphics, GlId program, const SensorData& sensor);
 // Runs until deviceIsRunning returns false. Static calibration is rebound only

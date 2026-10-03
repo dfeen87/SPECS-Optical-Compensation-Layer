@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.16)
-project(specs_optical_compensation VERSION 1.0.0 LANGUAGES CXX)
+project(specs_optical_compensation VERSION 2.0.0 LANGUAGES CXX)
 
 include(GNUInstallDirs)
 include(CMakePackageConfigHelpers)
